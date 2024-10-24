@@ -12,14 +12,14 @@ const Post = ({ post }) => {
           <MdDelete />
         </span>
         <h5 className="card-title">{post.title}</h5>
-        <p className="card-text">{post.body_text}</p>
+        <p className="card-text">{post.body}</p>
         {post.tags.map((tag) => (
           <span key={tag} className="badge text-bg-primary hashtag">
             {tag}
           </span>
         ))}
         <div className="alert alert-success reactions" role="alert">
-          This post has been reacted on by {post.reactions} people.
+          This post has been reacted on by {post.reactions.likes} people.
         </div>
       </div>
     </div>
