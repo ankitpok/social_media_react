@@ -9,13 +9,18 @@ const PostList = () => {
   let [fetching, setFetching] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
     setFetching(true);
-    fetch("https://dummyjson.com/posts")
+    fetch("https://dummyjson.com/posts", { signal })
       .then((res) => res.json())
       .then((data) => {
         fetchPosts(data.posts);
         setFetching(false);
       });
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   return (
