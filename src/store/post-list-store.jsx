@@ -1,10 +1,10 @@
-import { createContext, useReducer } from "react";
+import { createContext, useEffect, useReducer, useState } from "react";
 
 // Renaming the context to avoid naming conflicts
 export const PostListContext = createContext({
   postList: [],
   addPost: () => {},
-  fetchPosts: () => {},
+  fetching: false,
   deletePost: () => {},
 });
 
@@ -13,7 +13,7 @@ const postListReducer = (currPostList, action) => {
   if (action.type === "DELETE_POST") {
     return currPostList.filter((post) => post.id !== action.payload.postId);
   } else if (action.type === "ADD_POST") {
-    return [...currPostList, action.payload];
+    return [action.payload, ...currPostList];
   } else if (action.type === "FETCH_POSTS") {
     return (newPostList = action.payload.posts);
   }
@@ -23,17 +23,12 @@ const postListReducer = (currPostList, action) => {
 const PostListProvider = ({ children }) => {
   const [postList, dispatchPostList] = useReducer(postListReducer, []);
 
-  const addPost = (userId, postTitle, postBody, postTags, Reactions) => {
+  let [fetching, setFetching] = useState(false);
+
+  const addPost = (post) => {
     dispatchPostList({
       type: "ADD_POST",
-      payload: {
-        id: Date.now(),
-        title: postTitle,
-        body: postBody,
-        reactions: Reactions,
-        userId: userId,
-        tags: postTags,
-      },
+      payload: post,
     });
   };
 
@@ -55,9 +50,24 @@ const PostListProvider = ({ children }) => {
     });
   };
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+    setFetching(true);
+    fetch("https://dummyjson.com/posts", { signal })
+      .then((res) => res.json())
+      .then((data) => {
+        fetchPosts(data.posts);
+        setFetching(false);
+      });
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
   return (
     <PostListContext.Provider
-      value={{ postList, addPost, deletePost, fetchPosts }}>
+      value={{ postList, addPost, deletePost, fetching }}>
       {children}
     </PostListContext.Provider>
   );
